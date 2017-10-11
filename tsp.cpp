@@ -19,6 +19,7 @@ public:
 
     /**
         Creates a point
+        
         @param x The x-coordinate
         @param y The y-coordinate
     */
@@ -36,6 +37,7 @@ public:
 
     /**
         Calculates the euclidian distance between this point and another
+
         @param p The other point
         @return The distance between this point and the provided one
     */
@@ -82,12 +84,13 @@ long dist(Point* points, int p1, int p2) {
 
 /**
     Implemented from Kattis pseudo code
+
     @param points An array with points to be traversed
     @return A greedy tour through the points
 */
 int* greedyTour(Point* points, int n) {
     int* tour = new int[n];
-    bool* used = new bool[n];
+    bool* used = new bool[n]();
     tour[0] = 0;
     used[0] = true;
 
