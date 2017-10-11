@@ -5,7 +5,7 @@ using namespace std;
 
 /**
     A class containing an x-coordinate and a y-coordinate to simulate
-    a point. 
+    a point.
 */
 class Point {
 public:
@@ -50,7 +50,7 @@ public:
     @param arr The array to be printed
     @param size The length of the array
 */
-void print_result(long* arr, int size) {
+void print_result(int* arr, int size) {
     for (int i=0; i < size; i++)
         cout << arr[i] << endl;
 }
@@ -85,14 +85,14 @@ long dist(Point* points, int p1, int p2) {
     @param points An array with points to be traversed
     @return A greedy tour through the points
 */
-long* greedyTour(Point* points, int n) {
-    long* tour = new long[n];
+int* greedyTour(Point* points, int n) {
+    int* tour = new int[n];
     bool* used = new bool[n];
     tour[0] = 0;
     used[0] = true;
 
     for (int i=1; i < n; i++) {
-        long best = -1;
+        int best = -1;
         for (int j=0; j < n; j++) {
             if (!used[j] && (best == -1 || dist(points, tour[i-1], j) < dist(points, tour[i-1], best)))
                 best = j;
@@ -115,7 +115,7 @@ int main() {
         points[i] = readPoint();
 
     // Tour
-    long* tour = greedyTour(points, N);
+    int* tour = greedyTour(points, N);
 
     // Print results
     print_result(tour, N);
