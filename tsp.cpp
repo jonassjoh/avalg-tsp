@@ -3,20 +3,42 @@
 #include <math.h>
 using namespace std;
 
+/**
+    A class containing an x-coordinate and a y-coordinate to simulate
+    a point. 
+*/
 class Point {
 public:
     double x, y;
+
+    /**
+        Creates a point
+    */
     Point() {
     }
+
+    /**
+        Creates a point
+        @param x The x-coordinate
+        @param y The y-coordinate
+    */
     Point(double x, double y) {
         this->x = x;
         this->y = y;
     }
 
+    /**
+        Prints the point on cout on the format "(x, y)\n"
+    */
     void print() {
         cout << "(" << this->x << ", " << this->y << ")" << endl;
     }
 
+    /**
+        Calculates the euclidian distance between this point and another
+        @param p The other point
+        @return The distance between this point and the provided one
+    */
     long distance(Point p) {
         return (long) (sqrt( pow(this->x - p.x, 2) + pow(this->y - p.y, 2)) + 0.5L);
     }
