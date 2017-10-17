@@ -1,0 +1,4 @@
+1. Construct minimal spanning tree (Prim, Kruskal)
+2. Consider the nodes with odd degree in the minimal spanning tree and find a minimal weight perfect matching
+3. The minimal spanning tree + the minimal weight perfect matching forms a graph with all degrees even
+4. => It has a euler tour = TSP
