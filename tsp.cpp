@@ -1,7 +1,10 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include <math.h>
 using namespace std;
+
+class Point;
 
 /**
     A class containing an x-coordinate and a y-coordinate to simulate
@@ -10,6 +13,8 @@ using namespace std;
 class Point {
 public:
     double x, y;
+    int rank;
+    Point* parent;
 
     /**
         Creates a point
@@ -43,6 +48,44 @@ public:
     */
     long distance(Point p) {
         return (long) (sqrt( pow(this->x - p.x, 2) + pow(this->y - p.y, 2)) + 0.5L);
+    }
+};
+
+class Edge {
+public:
+    int a, b;
+    long distance;
+    Edge(int a, int b, long distance) {
+        this->a = a;
+        this->b = b;
+        this->distance = distance;
+    }
+
+    bool operator > (const Edge &other) {
+        return this->distance > other.distance;
+    }
+    bool operator < (const Edge &other) {
+        return this->distance < other.distance;
+    }
+};
+
+class Graph {
+public:
+    vector<Point> points;
+    vector<Edge> edges;
+    Graph(Point* points, int n) {
+        for (int i=0; i < n; i++) {
+
+            // Add point to graph
+            this->points.push_back(points[i]);
+
+            // Add all edges from point to other points
+            for (int j=i+1; j < n; j++) {
+                Edge edge(i, j, points[i].distance(points[j]));
+                edges.push_back(edge);
+            }
+        }
+        sort(edges.begin(), edges.end());
     }
 };
 
@@ -106,6 +149,47 @@ int* greedyTour(Point* points, int n) {
     return tour;
 }
 
+void makeSet(vector<Point> points, int i) {
+    points[i].parent = &points[i];
+    points[i].rank = 0;
+}
+
+Point* find(Point x) {
+    if (x.parent != &x)
+        x.parent = find(*(x.parent));
+    return x.parent;
+}
+
+void kruskal_union(Point x, Point y) {
+    Point xRoot = *find(x);
+    Point yRoot = *find(y);
+
+    if (&xRoot == &yRoot) return;
+
+    if (xRoot.rank < yRoot.rank)
+        xRoot.parent = &yRoot;
+    else if (xRoot.rank > yRoot.rank)
+        yRoot.parent = &xRoot;
+    else {
+        yRoot.parent = &xRoot;
+        xRoot.rank = xRoot.rank + 1;
+    }
+}
+
+void kruskal(Graph graph) {
+    vector<Edge> A;
+    for (int i=0; i < graph.points.size(); i++) {
+        makeSet(graph.points, i);
+    }
+    for (int i=0; i < graph.edges.size(); i++) {
+        Edge edge = graph.edges[i];
+        if (find(graph.points[edge.a]) != find(graph.points[edge.b])) {
+            A.push_back(edge);
+            kruskal_union(graph.points[edge.a], graph.points[edge.b]);
+        }
+    }
+}
+
 int main() {
 
     // Number of points
@@ -119,6 +203,10 @@ int main() {
 
     // Tour
     int* tour = greedyTour(points, N);
+
+    Graph graph(points, N);
+
+    kruskal(graph);
 
     // Print results
     print_result(tour, N);
