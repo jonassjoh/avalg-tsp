@@ -162,7 +162,7 @@ bool no_cycle(vector<Edge> edges, Edge e) {
     }
 }
 
-void join_parents(vector<Edge> edges, int e) {
+void join_parents(vector<Edge> &edges, int e) {
     vector<Point*> c;
     for (int i=0; i < edges.size(); i++) {
         if (edges[i].from.parent == edges[e].to.parent)
@@ -211,10 +211,13 @@ vector<Edge> clarke_wright(vector<Point> points, int n) {
                 if (edges[a].from.degree == 2) {
                     //V_h = V - i
                     points.erase(std::remove(points.begin(), points.end(), edges[a].from), points.end());
+                    cout << "jag gick in här lol" << endl;
                 }
                 if (edges[a].to.degree == 2) {
                     //V_h = V - j
                     points.erase(std::remove(points.begin(), points.end(), edges[a].to), points.end());
+                    cout << "jag gick in här lol2" << endl;
+
                 }
                 //edges.erase(edges.begin() + a);
             }
