@@ -162,7 +162,7 @@ bool no_cycle(vector<Edge> edges, Edge e) {
     }
 }
 
-vector<Point> clarke_wright(vector<Point> points, int n) {
+vector<Edge> clarke_wright(vector<Point> points, int n) {
     //srand(time(NULL));
     //int hub_index = rand() % n;
     Point hub = points[0];
@@ -195,9 +195,14 @@ vector<Point> clarke_wright(vector<Point> points, int n) {
             e.to.degree++;
             if (no_cycle(edges, e) && e.from.degree <= 2 && e.to.degree <= 2) {
                 if (e.from.degree == 2) {
-                    //V_h = V - h
+                    //V_h = V - i
                     points.erase(std::remove(points.begin(), points.end(), e.from), points.end());
                 }
+                if (e.to.degree == 2) {
+                    //V_h = V - j
+                    points.erase(std::remove(points.begin(), points.end(), e.to), points.end());
+                }
+                break;
             }
             else {
                 e.from.degree--;
@@ -207,7 +212,10 @@ vector<Point> clarke_wright(vector<Point> points, int n) {
         }
     }
 
-    return points;
+    tour.push_back(Edge(hub, points[0], 0));
+    tour.push_back(Edge(hub, points[1], 0));
+
+    return tour;
 }
 
 int main() {
@@ -226,6 +234,9 @@ int main() {
     // Print results
     print_result(tour, N);
 
-    vector<Point> apa = clarke_wright(points, N);
+    vector<Edge> apa = clarke_wright(points, N);
+    for (int i=0; i < apa.size(); i++)
+        cout << apa[i].from << " " << apa[i].to << endl;
+
     return 0;
 }
