@@ -162,6 +162,18 @@ bool no_cycle(vector<Edge> edges, Edge e) {
     }
 }
 
+void join_parents(vector<Edge> edges, int e) {
+    vector<Point*> c;
+    for (int i=0; i < edges.size(); i++) {
+        if (edges[i].from.parent == edges[e].to.parent)
+            c.push_back(&(edges[i].from));
+        if (edges[i].to.parent == edges[e].to.parent)
+            c.push_back(&(edges[i].to));
+    }
+    for (int i=0; i < c.size(); i++)
+        c[i]->parent = edges[e].from.parent;
+}
+
 vector<Edge> clarke_wright(vector<Point> points, int n) {
     //srand(time(NULL));
     //int hub_index = rand() % n;
@@ -189,24 +201,26 @@ vector<Edge> clarke_wright(vector<Point> points, int n) {
     while(points.size() > 2) {
         for (int a=0; a < edges.size(); a++) {
             // Try vector pair (i, j) in Edges
-            Edge e = edges[a];
-            tour.push_back(e);
-            e.from.degree++;
-            e.to.degree++;
-            if (no_cycle(edges, e) && e.from.degree <= 2 && e.to.degree <= 2) {
-                if (e.from.degree == 2) {
+            tour.push_back(edges[a]);
+            edges[a].from.degree++;
+            edges[a].to.degree++;
+            if (no_cycle(edges, edges[a]) && edges[a].from.degree <= 2 && edges[a].to.degree <= 2) {
+                cout << edges[a].from.parent << " # " << edges[a].to.parent << endl;
+                join_parents(edges, a);
+                cout << edges[a].from.parent << " - " << edges[a].to.parent << endl;
+                if (edges[a].from.degree == 2) {
                     //V_h = V - i
-                    points.erase(std::remove(points.begin(), points.end(), e.from), points.end());
+                    points.erase(std::remove(points.begin(), points.end(), edges[a].from), points.end());
                 }
-                if (e.to.degree == 2) {
+                if (edges[a].to.degree == 2) {
                     //V_h = V - j
-                    points.erase(std::remove(points.begin(), points.end(), e.to), points.end());
+                    points.erase(std::remove(points.begin(), points.end(), edges[a].to), points.end());
                 }
-                break;
+                //edges.erase(edges.begin() + a);
             }
             else {
-                e.from.degree--;
-                e.to.degree--;
+                edges[a].from.degree--;
+                edges[a].to.degree--;
                 tour.pop_back();
             }
         }
