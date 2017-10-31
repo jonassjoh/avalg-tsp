@@ -2,47 +2,51 @@
 #include <vector>
 #include <math.h>
 #include <limits>
+#include <algorithm>
 #include <map>
 
 using namespace std;
 
 /**
-    A class containing an x-coordinate and a y-coordinate to simulate
-    a point.
+A class containing an x-coordinate and a y-coordinate to simulate
+a point.
 */
 class Point {
 public:
     double x, y;
+    Point* parent;
+    int degree;
 
     /**
-        Creates a point
+    Creates a point
     */
     Point() {
     }
 
     /**
-        Creates a point
+    Creates a point
 
-        @param x The x-coordinate
-        @param y The y-coordinate
+    @param x The x-coordinate
+    @param y The y-coordinate
     */
     Point(double x, double y) {
         this->x = x;
         this->y = y;
+        this->degree = 0;
     }
 
     /**
-        Prints the point on cout on the format "(x, y)\n"
+    Prints the point on cout on the format "(x, y)\n"
     */
     void print() {
         cout << "(" << this->x << ", " << this->y << ")" << endl;
     }
 
     /**
-        Calculates the euclidian distance between this point and another
+    Calculates the euclidian distance between this point and another
 
-        @param p The other point
-        @return The distance between this point and the provided one
+    @param p The other point
+    @return The distance between this point and the provided one
     */
     int distance(Point p) {
         return (int) (sqrt( pow(this->x - p.x, 2) + pow(this->y - p.y, 2)) + 0.5L);
@@ -50,57 +54,57 @@ public:
 };
 
 bool operator!=(const Point& p1, const Point& p2) {
- return p1.x != p2.x && p1.y != p2.y;
+    return p1.x != p2.x && p1.y != p2.y;
 }
 
 bool operator<(const Point& p1, const Point& p2) {
- return p1.x < p2.x && p1.y < p2.y;
+    return p1.x < p2.x && p1.y < p2.y;
 }
 
 bool operator==(const Point& p1, const Point& p2) {
- return p1.x == p2.x && p1.y == p2.y;
+    return p1.x == p2.x && p1.y == p2.y;
 }
 
 std::ostream & operator<<(std::ostream & Str, const Point& p) {
-  Str << to_string(p.x) << ' ' << to_string(p.y);
-  return Str;
+    Str << to_string(p.x) << ' ' << to_string(p.y);
+    return Str;
 }
 
-struct Saving {
-  int to;
-  int from;
-  int saving;
+struct Edge {
+    Point to;
+    Point from;
+    int savings;
 
-  Saving(int to, int from, int saving) {
-    this->to = to;
-    this->from = from;
-    this->saving = saving;
-  }
+    Edge(Point to, Point from, int savings) {
+        this->to = to;
+        this->from = from;
+        this->savings = savings;
+    }
 };
 
-struct less_than_saving
+struct less_than_Edge
 {
-    inline bool operator() (const Saving& s1, const Saving& s2)
+    inline bool operator() (const Edge& s1, const Edge& s2)
     {
-        return (s1.saving > s2.saving);
+        return (s1.savings > s2.savings);
     }
 };
 
 /**
-    Prints an array using a new line for every index
+Prints an array using a new line for every index
 
-    @param arr The array to be printed
-    @param size The length of the array
+@param arr The array to be printed
+@param size The length of the array
 */
 void print_result(int* arr, int size) {
     for (int i=0; i < size; i++)
-        cout << arr[i] << endl;
+    cout << arr[i] << endl;
 }
 
 /**
-    Reads two doubles from cin and returns a Point containing the values
+Reads two doubles from cin and returns a Point containing the values
 
-    @return A point containing values read from cin
+@return A point containing values read from cin
 */
 Point readPoint() {
     double x, y;
@@ -110,23 +114,23 @@ Point readPoint() {
 }
 
 /**
-    Returns the distance between two points found at the specified indexes
-    in the provided vector.
+Returns the distance between two points found at the specified indexes
+in the provided vector.
 
-    @param points A vector containing Points
-    @param p1 The index in the array for the first point
-    @param p2 The index in the array for the second point
-    @return The distance between the points
+@param points A vector containing Points
+@param p1 The index in the array for the first point
+@param p2 The index in the array for the second point
+@return The distance between the points
 */
 int dist(vector<Point> points, int p1, int p2) {
     return points[p1].distance(points[p2]);
 }
 
 /**
-    Implemented from Kattis pseudo code
+Implemented from Kattis pseudo code
 
-    @param points An array with points to be traversed
-    @return A greedy tour through the points
+@param points An array with points to be traversed
+@return A greedy tour through the points
 */
 int* greedyTour(vector<Point> points, int n) {
     int* tour = new int[n];
@@ -138,7 +142,7 @@ int* greedyTour(vector<Point> points, int n) {
         int best = -1;
         for (int j=0; j < n; j++) {
             if (!used[j] && (best == -1 || dist(points, tour[i-1], j) < dist(points, tour[i-1], best)))
-                best = j;
+            best = j;
         }
         tour[i] = best;
         used[best] = true;
@@ -146,33 +150,64 @@ int* greedyTour(vector<Point> points, int n) {
     return tour;
 }
 
-vector<Point> clarke_wright(vector<Point> points, int n) {
-  //srand(time(NULL));
-  //int hub_index = rand() % n;
-  Point hub = points[0];
+Point find(Point &x) {
+    if (x.parent != x)
+    x.parent = find(x.parent);
+    return x.parent;
+}
 
-  vector<Saving> savings;
-
-  //V_h = V - h
-  points.erase(std::remove(points.begin(), points.end(), hub), points.end());
-
-  for(int i = 0; i < points.size(); i++) {
-    cout << "Point without hub : " << points[i] << endl;
-    for(int j = i + 1; j < points.size(); j++) {
-      int val = dist(points, 0, i) + dist(points, 0, j) - dist(points, i, j);
-      savings.push_back(Saving(i, j, val));
+bool no_cycle(vector<Edge> edges, Edge e) {
+    if (e.from.parent == e.to.parent) {
+        return false;
     }
-  }
+}
 
-  //sort the list of savings
-  sort(savings.begin(), savings.end(), less_than_saving());
+vector<Point> clarke_wright(vector<Point> points, int n) {
+    //srand(time(NULL));
+    //int hub_index = rand() % n;
+    Point hub = points[0];
 
-  //while()
-  while(points.size() > 2) {
-    
-  }
+    vector<Edge> edges;
 
-  return points;
+    vector<Edge> tour;
+
+    //V_h = V - h
+    points.erase(std::remove(points.begin(), points.end(), hub), points.end());
+
+    for(int i = 0; i < points.size(); i++) {
+        points[i].parent = points[i];
+        cout << "Point without hub : " << points[i] << endl;
+        for(int j = i + 1; j < points.size(); j++) {
+            int val = dist(points, 0, i) + dist(points, 0, j) - dist(points, i, j);
+            edges.push_back(Edge(&points[i], &points[j], val));
+        }
+    }
+
+    //sort the list of Edges
+    sort(edges.begin(), edges.end(), less_than_Edge());
+
+    while(points.size() > 2) {
+        for (int a=0; a < edges.size(); a++) {
+            // Try vector pair (i, j) in Edges
+            Edge e = edges[a];
+            tour.push_back(e);
+            e.from.degree++;
+            e.to.degree++;
+            if (no_cycle(edges, e) && e.from.degree <= 2 && e.to.degree <= 2) {
+                if (e.from.degree == 2) {
+                    //V_h = V - h
+                    points.erase(std::remove(points.begin(), points.end(), e.from), points.end());
+                }
+            }
+            else {
+                e.from.degree--;
+                e.to.degree--;
+                tour.pop_back();
+            }
+        }
+    }
+
+    return points;
 }
 
 int main() {
@@ -184,13 +219,12 @@ int main() {
     // List of points
     vector<Point> points;
     for (int i=0; i < N; i++)
-        points.push_back(readPoint());
+    points.push_back(readPoint());
     // Tour
     int* tour = greedyTour(points, N);
 
     // Print results
     print_result(tour, N);
-
 
     vector<Point> apa = clarke_wright(points, N);
     return 0;
