@@ -150,10 +150,10 @@ int* greedyTour(vector<Point> points, int n) {
     return tour;
 }
 
-Point find(Point &x) {
-    if (x.parent != x)
-    x.parent = find(x.parent);
-    return x.parent;
+Point* find(Point *x) {
+    if (x->parent != x)
+    x->parent = find(x->parent);
+    return x->parent;
 }
 
 bool no_cycle(vector<Edge> edges, Edge e) {
@@ -175,11 +175,11 @@ vector<Point> clarke_wright(vector<Point> points, int n) {
     points.erase(std::remove(points.begin(), points.end(), hub), points.end());
 
     for(int i = 0; i < points.size(); i++) {
-        points[i].parent = points[i];
+        points[i].parent = &points[i];
         cout << "Point without hub : " << points[i] << endl;
         for(int j = i + 1; j < points.size(); j++) {
             int val = dist(points, 0, i) + dist(points, 0, j) - dist(points, i, j);
-            edges.push_back(Edge(&points[i], &points[j], val));
+            edges.push_back(Edge(points[i], points[j], val));
         }
     }
 
