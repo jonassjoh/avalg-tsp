@@ -1,6 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
+#include <limits>
+#include <map>
+
 using namespace std;
 
 /**
@@ -19,7 +22,7 @@ public:
 
     /**
         Creates a point
-        
+
         @param x The x-coordinate
         @param y The y-coordinate
     */
@@ -41,8 +44,45 @@ public:
         @param p The other point
         @return The distance between this point and the provided one
     */
-    long distance(Point p) {
-        return (long) (sqrt( pow(this->x - p.x, 2) + pow(this->y - p.y, 2)) + 0.5L);
+    int distance(Point p) {
+        return (int) (sqrt( pow(this->x - p.x, 2) + pow(this->y - p.y, 2)) + 0.5L);
+    }
+};
+
+bool operator!=(const Point& p1, const Point& p2) {
+ return p1.x != p2.x && p1.y != p2.y;
+}
+
+bool operator<(const Point& p1, const Point& p2) {
+ return p1.x < p2.x && p1.y < p2.y;
+}
+
+bool operator==(const Point& p1, const Point& p2) {
+ return p1.x == p2.x && p1.y == p2.y;
+}
+
+std::ostream & operator<<(std::ostream & Str, const Point& p) {
+  Str << to_string(p.x) << ' ' << to_string(p.y);
+  return Str;
+}
+
+struct Saving {
+  int to;
+  int from;
+  int saving;
+
+  Saving(int to, int from, int saving) {
+    this->to = to;
+    this->from = from;
+    this->saving = saving;
+  }
+};
+
+struct less_than_saving
+{
+    inline bool operator() (const Saving& s1, const Saving& s2)
+    {
+        return (s1.saving > s2.saving);
     }
 };
 
@@ -78,7 +118,7 @@ Point readPoint() {
     @param p2 The index in the array for the second point
     @return The distance between the points
 */
-long dist(Point* points, int p1, int p2) {
+int dist(vector<Point> points, int p1, int p2) {
     return points[p1].distance(points[p2]);
 }
 
@@ -88,7 +128,7 @@ long dist(Point* points, int p1, int p2) {
     @param points An array with points to be traversed
     @return A greedy tour through the points
 */
-int* greedyTour(Point* points, int n) {
+int* greedyTour(vector<Point> points, int n) {
     int* tour = new int[n];
     bool* used = new bool[n]();
     tour[0] = 0;
@@ -106,6 +146,35 @@ int* greedyTour(Point* points, int n) {
     return tour;
 }
 
+vector<Point> clarke_wright(vector<Point> points, int n) {
+  //srand(time(NULL));
+  //int hub_index = rand() % n;
+  Point hub = points[0];
+
+  vector<Saving> savings;
+
+  //V_h = V - h
+  points.erase(std::remove(points.begin(), points.end(), hub), points.end());
+
+  for(int i = 0; i < points.size(); i++) {
+    cout << "Point without hub : " << points[i] << endl;
+    for(int j = i + 1; j < points.size(); j++) {
+      int val = dist(points, 0, i) + dist(points, 0, j) - dist(points, i, j);
+      savings.push_back(Saving(i, j, val));
+    }
+  }
+
+  //sort the list of savings
+  sort(savings.begin(), savings.end(), less_than_saving());
+
+  //while()
+  while(points.size() > 2) {
+    
+  }
+
+  return points;
+}
+
 int main() {
 
     // Number of points
@@ -113,15 +182,16 @@ int main() {
     cin >> N;
 
     // List of points
-    Point* points = new Point[N];
+    vector<Point> points;
     for (int i=0; i < N; i++)
-        points[i] = readPoint();
-
+        points.push_back(readPoint());
     // Tour
     int* tour = greedyTour(points, N);
 
     // Print results
     print_result(tour, N);
 
+
+    vector<Point> apa = clarke_wright(points, N);
     return 0;
 }
