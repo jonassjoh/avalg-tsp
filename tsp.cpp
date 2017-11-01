@@ -261,6 +261,41 @@ void print_tour(vector<vector<int>> &tour) {
     }
 }
 
+int tour_length(vector<vector<int>> &tour, vector<Point> &points) {
+    int l = 0;
+
+    if (tour[0].size() == 0) {
+        return l;
+    }
+
+    int prev = 0;
+    int next = tour[0][0];
+
+    while(next != 0) {
+        /* code */
+        for(int i = 0; i < tour[next].size(); i++) {
+            if(tour[next][i] != prev) {
+                cout << next << endl;
+                l += points[next].distance(points[prev]);
+                prev = next;
+                next = tour[next][i];
+                break;
+            }
+        }
+    }
+    l += points[next].distance(points[prev]);
+
+    return l;
+}
+
+vector<vector<int>> k2opt(vector<vector<int>> &tour) {
+    bool noChange = true;
+    do {
+
+    } while(noChange);
+    return tour;
+}
+
 int main() {
 
     // Number of points
@@ -271,15 +306,11 @@ int main() {
     vector<Point> points;
     for (int i=0; i < N; i++)
     points.push_back(readPoint(i));
-    // Tour
-    //int* tour = greedyTour(points, N);
-
-    // Print results
-    //print_result(tour, N);
 
     vector<vector<int>> tour = clarke_wright(points, N);
-
     print_tour(tour);
+
+    k2opt(tour);
 
     return 0;
 }
