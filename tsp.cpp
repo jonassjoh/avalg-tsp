@@ -13,7 +13,9 @@ a point.
 */
 class Point {
 public:
+    int index;
     double x, y;
+
     Point* parent;
     int degree;
 
@@ -29,10 +31,11 @@ public:
     @param x The x-coordinate
     @param y The y-coordinate
     */
-    Point(double x, double y) {
-        this->x = x;
-        this->y = y;
-        this->degree = 0;
+    Point(int index, double x, double y) {
+      this->index = index;
+      this->x = x;
+      this->y = y;
+      this->degree = 0;
     }
 
     /**
@@ -71,11 +74,11 @@ std::ostream & operator<<(std::ostream & Str, const Point& p) {
 }
 
 struct Edge {
-    Point to;
-    Point from;
+    int to;
+    int from;
     int savings;
 
-    Edge(Point to, Point from, int savings) {
+    Edge(int to, int from, int savings) {
         this->to = to;
         this->from = from;
         this->savings = savings;
@@ -106,10 +109,10 @@ Reads two doubles from cin and returns a Point containing the values
 
 @return A point containing values read from cin
 */
-Point readPoint() {
+Point readPoint(int i) {
     double x, y;
     cin >> x >> y;
-    Point a(x, y);
+    Point a(i, x, y);
     return a;
 }
 
@@ -122,8 +125,8 @@ in the provided vector.
 @param p2 The index in the array for the second point
 @return The distance between the points
 */
-int dist(vector<Point> points, int p1, int p2) {
-    return points[p1].distance(points[p2]);
+int dist(Point p1, Point p2) {
+    return (int) (sqrt( pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2)) + 0.5L);
 }
 
 /**
@@ -141,8 +144,8 @@ int* greedyTour(vector<Point> points, int n) {
     for (int i=1; i < n; i++) {
         int best = -1;
         for (int j=0; j < n; j++) {
-            if (!used[j] && (best == -1 || dist(points, tour[i-1], j) < dist(points, tour[i-1], best)))
-            best = j;
+            if (!used[j] && (best == -1 || dist(points[tour[i-1]], points[j]) < dist(points[tour[i-1]], points[best])))
+              best = j;
         }
         tour[i] = best;
         used[best] = true;
@@ -150,38 +153,40 @@ int* greedyTour(vector<Point> points, int n) {
     return tour;
 }
 
-Point* find(Point *x) {
-    if (x->parent != x)
-    x->parent = find(x->parent);
-    return x->parent;
-}
+bool containsCycle(vector<vector<int>> &tour, Edge edge) {
+    int prev = -1;
+    int next = edge.from;
+    int old_next = -1;
 
-bool no_cycle(vector<Edge> edges, Edge e) {
-    if (e.from.parent == e.to.parent) {
-        return false;
+    while(next != old_next) {
+        old_next = next;
+        /* code */
+        for(int i = 0; i < tour[next].size(); i++) {
+            if(tour[next][i] != prev) {
+                prev = next;
+                next = tour[next][i];
+                break;
+            }
+
+            if(next == edge.to) {
+                //cycle found
+                return true;
+            }
+        }
     }
+
+    return false;
 }
 
-void join_parents(vector<Edge> &edges, int e) {
-    vector<Point*> c;
-    for (int i=0; i < edges.size(); i++) {
-        if (edges[i].from.parent == edges[e].to.parent)
-            c.push_back(&(edges[i].from));
-        if (edges[i].to.parent == edges[e].to.parent)
-            c.push_back(&(edges[i].to));
-    }
-    for (int i=0; i < c.size(); i++)
-        c[i]->parent = edges[e].from.parent;
-}
-
-vector<Edge> clarke_wright(vector<Point> points, int n) {
+vector<vector<int>> clarke_wright(vector<Point> points, int n) {
     //srand(time(NULL));
     //int hub_index = rand() % n;
     Point hub = points[0];
 
     vector<Edge> edges;
 
-    vector<Edge> tour;
+    vector<vector<int>> tour;
+    tour.reserve(n);
 
     //V_h = V - h
     points.erase(std::remove(points.begin(), points.end(), hub), points.end());
@@ -190,47 +195,29 @@ vector<Edge> clarke_wright(vector<Point> points, int n) {
         points[i].parent = &points[i];
         cout << "Point without hub : " << points[i] << endl;
         for(int j = i + 1; j < points.size(); j++) {
-            int val = dist(points, 0, i) + dist(points, 0, j) - dist(points, i, j);
-            edges.push_back(Edge(points[i], points[j], val));
+            int val = dist(hub, points[i]) + dist(hub, points[j]) - dist(points[j], points[i]);
+            edges.push_back(Edge(points[i].index, points[j].index, val));
         }
     }
 
     //sort the list of Edges
     sort(edges.begin(), edges.end(), less_than_Edge());
 
+    //Preprocessing done
+
+    cout << "Hehehe" << endl;
+
     while(points.size() > 2) {
-        for (int a=0; a < edges.size(); a++) {
-            // Try vector pair (i, j) in Edges
-            tour.push_back(edges[a]);
-            edges[a].from.degree++;
-            edges[a].to.degree++;
-            if (no_cycle(edges, edges[a]) && edges[a].from.degree <= 2 && edges[a].to.degree <= 2) {
-                cout << edges[a].from.parent << " # " << edges[a].to.parent << endl;
-                join_parents(edges, a);
-                cout << edges[a].from.parent << " - " << edges[a].to.parent << endl;
-                if (edges[a].from.degree == 2) {
-                    //V_h = V - i
-                    points.erase(std::remove(points.begin(), points.end(), edges[a].from), points.end());
-                    cout << "jag gick in här lol" << endl;
-                }
-                if (edges[a].to.degree == 2) {
-                    //V_h = V - j
-                    points.erase(std::remove(points.begin(), points.end(), edges[a].to), points.end());
-                    cout << "jag gick in här lol2" << endl;
+        Edge &e = edges[0];
 
-                }
-                //edges.erase(edges.begin() + a);
-            }
-            else {
-                edges[a].from.degree--;
-                edges[a].to.degree--;
-                tour.pop_back();
-            }
+        cout << "Never f****d up" << endl;
+
+
+        if(!containsCycle(tour, e)) {
+
         }
-    }
 
-    tour.push_back(Edge(hub, points[0], 0));
-    tour.push_back(Edge(hub, points[1], 0));
+    }
 
     return tour;
 }
@@ -244,16 +231,14 @@ int main() {
     // List of points
     vector<Point> points;
     for (int i=0; i < N; i++)
-    points.push_back(readPoint());
+    points.push_back(readPoint(i));
     // Tour
     int* tour = greedyTour(points, N);
 
     // Print results
     print_result(tour, N);
 
-    vector<Edge> apa = clarke_wright(points, N);
-    for (int i=0; i < apa.size(); i++)
-        cout << apa[i].from << " " << apa[i].to << endl;
+    vector<vector<int>> apa = clarke_wright(points, N);
 
     return 0;
 }
