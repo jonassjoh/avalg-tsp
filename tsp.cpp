@@ -16,7 +16,7 @@ public:
     int index;
     double x, y;
 
-    Point* parent;
+    int parent;
     int degree;
 
     /**
@@ -154,31 +154,24 @@ int* greedyTour(vector<Point> points, int n) {
     return tour;
 }
 
-bool containsCycle(vector<vector<int>> &tour, Edge edge) {
+bool containsCycle(vector<Point> &points, Edge edge) {
+    return points[edge.from].parent == points[edge.to].parent;
+}
+
+void syncParents(vector<Point> &points, vector<vector<int>> &tour, Edge edge) {
+    int parent = points[edge.to].parent;
     int prev = -1;
     int next = edge.from;
-    int old_next = -1;
-
-    int iters = 0;
-    while(next != old_next) {
-        old_next = next;
-        /* code */
+    while(points[next].parent != parent) {
+        points[next].parent = parent;
         for(int i = 0; i < tour[next].size(); i++) {
             if(tour[next][i] != prev) {
                 prev = next;
                 next = tour[next][i];
                 break;
             }
-
-            if(next == edge.to) {
-                //cycle found
-                return true;
-            }
         }
-        iters ++;
     }
-
-    return false;
 }
 
 vector<vector<int>> clarke_wright(vector<Point> points, int n) {
@@ -196,7 +189,7 @@ vector<vector<int>> clarke_wright(vector<Point> points, int n) {
     points.erase(std::remove(points.begin(), points.end(), hub), points.end());
 
     for(int i = 0; i < points.size(); i++) {
-        points[i].parent = &points[i];
+        points[i].parent = i;
         for(int j = i + 1; j < points.size(); j++) {
             int val = dist(hub, points[i]) + dist(hub, points[j]) - dist(points[j], points[i]);
             edges.push_back(Edge(points[i].index, points[j].index, val));
@@ -213,7 +206,10 @@ vector<vector<int>> clarke_wright(vector<Point> points, int n) {
     while(bool_counter > 2) {
         Edge e = edges[ edges.size()-1 ];
 
-        if(!containsCycle(tour, e) && tour[e.from].size() <= 1 && tour[e.to].size() <= 1) {
+        if(!containsCycle(points, e) && tour[e.from].size() <= 1 && tour[e.to].size() <= 1) {
+
+            syncParents(points, tour, e);
+
             tour[e.from].push_back(e.to);
             tour[e.to].push_back(e.from);
 
