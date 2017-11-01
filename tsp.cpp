@@ -246,14 +246,18 @@ void print_tour(vector<vector<int>> &tour) {
 
     int prev = 0;
     int next = tour[0][0];
-    tour[0].pop_back();
 
+    cout << prev << endl;
     while(next != 0) {
+        /* code */
         for(int i = 0; i < tour[next].size(); i++) {
             if(tour[next][i] != prev) {
-                tour[next].erase(tour[next].begin() + 1 - i);
+                cout << next << endl;
+                if (i == 1) {
+                    swap( tour[next][0], tour[next][1] );
+                }
                 prev = next;
-                next = tour[next][i];
+                next = tour[next][0];
                 break;
             }
         }
@@ -274,10 +278,12 @@ int tour_length(vector<vector<int>> &tour, vector<Point> &points) {
         /* code */
         for(int i = 0; i < tour[next].size(); i++) {
             if(tour[next][i] != prev) {
-                cout << next << endl;
                 l += points[next].distance(points[prev]);
+                if (i == 1) {
+                    swap( tour[next][0], tour[next][1] );
+                }
                 prev = next;
-                next = tour[next][i];
+                next = tour[next][0];
                 break;
             }
         }
@@ -287,7 +293,10 @@ int tour_length(vector<vector<int>> &tour, vector<Point> &points) {
     return l;
 }
 
-vector<vector<int>> k2opt(vector<vector<int>> &tour) {
+vector<vector<int>> k2opt(vector<vector<int>> &tour, vector<Point> &points) {
+    if (tour[0].size() == 0) return tour;
+
+    int tourLength = tour_length(tour, points);
     bool noChange = true;
     do {
         /*
@@ -299,15 +308,44 @@ vector<vector<int>> k2opt(vector<vector<int>> &tour) {
             5 <- 4 <- 3     5 <- 4    3
 
             tour = [
-                0 => [5, 1]   -->   0 => []
-                1 => [0, 2]
-                2 => [1, 3]
-                3 => [2, 4]
-                4 => [3, 5]
-                5 => [4, 0]
+                0 => [1, 5]   -->   0 => [__3__, 5] (pivot 1)
+                1 => [2, 0]   -->   1 => [2, __4__]
+                2 => [3, 1]
+                3 => [4, 2]   -->   3 => [__0__, 2]
+                4 => [5, 3]   -->   4 => [5, __1__] (pivot 2)
+                5 => [0, 4]
             ]
         */
-    } while(noChange);
+        for (int p1=0; p1 < tour.size(); p1++) {
+            for (int p2=0; p2 < tour.size(); p2++) {
+                if (p1 != p2 && p2 != tour[p1][0] && p2 != tour[p1][1]) {
+                    // p1 and p2 are 2 different points that are not neighbours
+
+                    // Copy of tour
+                    vector<vector<int>> primetour = tour;
+
+                    int p1_next = primetour[p1][0];  // 1
+                    int p2_next = primetour[p2][1];  // 3
+
+                    primetour[p1][0] = p2_next;      // 0 => [3, 5]
+                    primetour[p2][1] = p1_next;      // 4 => [5, 1]
+
+                    primetour[p1_next][1] = p2;      // 1 => [2, 4]
+                    primetour[p2_next][0] = p1;      // 3 => [0, 2]
+
+                    int primetour_length = tour_length(primetour, points);
+                    if (primetour_length < tourLength) {
+                        tour = primetour;
+                        tourLength = primetour_length;
+                        noChange = false;
+
+                        p1 = tour.size();
+                        break;
+                    }
+                }
+            }
+        }
+    } while(!noChange);
     return tour;
 }
 
@@ -323,9 +361,9 @@ int main() {
     points.push_back(readPoint(i));
 
     vector<vector<int>> tour = clarke_wright(points, N);
-    print_tour(tour);
 
-    //k2opt(tour);
+    tour = k2opt(tour, points);
+    print_tour(tour);
 
     return 0;
 }
