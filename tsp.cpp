@@ -246,13 +246,12 @@ void print_tour(vector<vector<int>> &tour) {
 
     int prev = 0;
     int next = tour[0][0];
+    tour[0].pop_back();
 
-    cout << prev << endl;
     while(next != 0) {
-        /* code */
         for(int i = 0; i < tour[next].size(); i++) {
             if(tour[next][i] != prev) {
-                cout << next << endl;
+                tour[next].erase(tour[next].begin() + 1 - i);
                 prev = next;
                 next = tour[next][i];
                 break;
@@ -291,7 +290,23 @@ int tour_length(vector<vector<int>> &tour, vector<Point> &points) {
 vector<vector<int>> k2opt(vector<vector<int>> &tour) {
     bool noChange = true;
     do {
+        /*
+            For Example:
 
+            0 -> 1 -> 2     0    1 -> 2
+            ^         |     ^  \      |
+            |         v     |      \  v
+            5 <- 4 <- 3     5 <- 4    3
+
+            tour = [
+                0 => [5, 1]   -->   0 => []
+                1 => [0, 2]
+                2 => [1, 3]
+                3 => [2, 4]
+                4 => [3, 5]
+                5 => [4, 0]
+            ]
+        */
     } while(noChange);
     return tour;
 }
@@ -310,7 +325,7 @@ int main() {
     vector<vector<int>> tour = clarke_wright(points, N);
     print_tour(tour);
 
-    k2opt(tour);
+    //k2opt(tour);
 
     return 0;
 }
