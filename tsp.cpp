@@ -150,6 +150,7 @@ int* greedyTour(vector<Point> points, int n) {
         tour[i] = best;
         used[best] = true;
     }
+
     return tour;
 }
 
@@ -182,18 +183,18 @@ vector<vector<int>> clarke_wright(vector<Point> points, int n) {
     //srand(time(NULL));
     //int hub_index = rand() % n;
     Point hub = points[0];
-
     vector<Edge> edges;
 
-    vector<vector<int>> tour;
-    tour.reserve(n);
+    bool* bools = new bool[n]();
+
+    vector<vector<int>> tour(n);
+    // tour.reserve(n);
 
     //V_h = V - h
     points.erase(std::remove(points.begin(), points.end(), hub), points.end());
 
     for(int i = 0; i < points.size(); i++) {
         points[i].parent = &points[i];
-        cout << "Point without hub : " << points[i] << endl;
         for(int j = i + 1; j < points.size(); j++) {
             int val = dist(hub, points[i]) + dist(hub, points[j]) - dist(points[j], points[i]);
             edges.push_back(Edge(points[i].index, points[j].index, val));
@@ -205,21 +206,69 @@ vector<vector<int>> clarke_wright(vector<Point> points, int n) {
 
     //Preprocessing done
 
-    cout << "Hehehe" << endl;
+    int bool_counter = n - 1;
 
-    while(points.size() > 2) {
-        Edge &e = edges[0];
+    while(bool_counter > 2) {
+        Edge e = edges[0];
 
-        cout << "Never f****d up" << endl;
+        if(!containsCycle(tour, e) && tour[e.from].size() <= 1 && tour[e.to].size() <= 1) {
+            tour[e.from].push_back(e.to);
+            tour[e.to].push_back(e.from);
 
-
-        if(!containsCycle(tour, e)) {
-
+            if(tour[e.from].size() == 2) {
+                bools[e.from] = true;
+                bool_counter --;
+            }
+            if(tour[e.to].size() == 2) {
+                bools[e.to] = true;
+                bool_counter --;
+            }
         }
 
+        edges.erase(edges.begin() + 0);
     }
 
+    for(int i = 0; i < n; i++) {
+        if(!bools[i]) {
+            tour[i].push_back(0);
+            tour[0].push_back(i);
+        }
+    }
+
+    int prev = 0;
+    int next = tour[0][0];
+
+
+    while(next != 0) {
+        /* code */
+        for(int i = 0; i < tour[next].size(); i++) {
+            if(tour[next][i] != prev) {
+                prev = next;
+                next = tour[next][i];
+                cout << next << endl;
+                break;
+            }
+        }
+    }
     return tour;
+}
+
+void print_tour(vector<vector<int>> &tour) {
+    int prev = 0;
+    int next = tour[0][0];
+
+
+    while(next != 0) {
+        /* code */
+        for(int i = 0; i < tour[next].size(); i++) {
+            if(tour[next][i] != prev) {
+                prev = next;
+                next = tour[next][i];
+                cout << next << endl;
+                break;
+            }
+        }
+    }
 }
 
 int main() {
@@ -233,12 +282,14 @@ int main() {
     for (int i=0; i < N; i++)
     points.push_back(readPoint(i));
     // Tour
-    int* tour = greedyTour(points, N);
+    //int* tour = greedyTour(points, N);
 
     // Print results
-    print_result(tour, N);
+    //print_result(tour, N);
 
-    vector<vector<int>> apa = clarke_wright(points, N);
+    vector<vector<int>> tour = clarke_wright(points, N);
+
+    print_tour(tour);
 
     return 0;
 }
