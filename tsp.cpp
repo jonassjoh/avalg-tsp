@@ -89,7 +89,7 @@ struct less_than_Edge
 {
     inline bool operator() (const Edge& s1, const Edge& s2)
     {
-        return (s1.savings > s2.savings);
+        return (s1.savings < s2.savings);
     }
 };
 
@@ -159,6 +159,7 @@ bool containsCycle(vector<vector<int>> &tour, Edge edge) {
     int next = edge.from;
     int old_next = -1;
 
+    int iters = 0;
     while(next != old_next) {
         old_next = next;
         /* code */
@@ -174,6 +175,7 @@ bool containsCycle(vector<vector<int>> &tour, Edge edge) {
                 return true;
             }
         }
+        iters ++;
     }
 
     return false;
@@ -209,7 +211,7 @@ vector<vector<int>> clarke_wright(vector<Point> points, int n) {
     int bool_counter = n - 1;
 
     while(bool_counter > 2) {
-        Edge e = edges[0];
+        Edge e = edges[ edges.size()-1 ];
 
         if(!containsCycle(tour, e) && tour[e.from].size() <= 1 && tour[e.to].size() <= 1) {
             tour[e.from].push_back(e.to);
@@ -225,7 +227,8 @@ vector<vector<int>> clarke_wright(vector<Point> points, int n) {
             }
         }
 
-        edges.erase(edges.begin() + 0);
+        //edges.erase(edges.begin() + 0);
+        edges.pop_back();
     }
 
     for(int i = 1; i < n; i++) {
