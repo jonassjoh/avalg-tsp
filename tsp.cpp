@@ -242,6 +242,12 @@ vector<vector<int>> clarke_wright(vector<Point> points, int n) {
 }
 
 void print_tour(vector<vector<int>> &tour) {
+
+    if (tour[0].size() == 0) {
+        cout << 0 << endl;
+        return;
+    }
+
     int prev = 0;
     int next = tour[0][0];
 
