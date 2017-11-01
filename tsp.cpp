@@ -228,28 +228,13 @@ vector<vector<int>> clarke_wright(vector<Point> points, int n) {
         edges.erase(edges.begin() + 0);
     }
 
-    for(int i = 0; i < n; i++) {
+    for(int i = 1; i < n; i++) {
         if(!bools[i]) {
             tour[i].push_back(0);
             tour[0].push_back(i);
         }
     }
 
-    int prev = 0;
-    int next = tour[0][0];
-
-
-    while(next != 0) {
-        /* code */
-        for(int i = 0; i < tour[next].size(); i++) {
-            if(tour[next][i] != prev) {
-                prev = next;
-                next = tour[next][i];
-                cout << next << endl;
-                break;
-            }
-        }
-    }
     return tour;
 }
 
@@ -257,14 +242,14 @@ void print_tour(vector<vector<int>> &tour) {
     int prev = 0;
     int next = tour[0][0];
 
-
+    cout << prev << endl;
     while(next != 0) {
         /* code */
         for(int i = 0; i < tour[next].size(); i++) {
             if(tour[next][i] != prev) {
+                cout << next << endl;
                 prev = next;
                 next = tour[next][i];
-                cout << next << endl;
                 break;
             }
         }
