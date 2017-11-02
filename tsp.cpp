@@ -349,8 +349,9 @@ vector<int> k2opt(vector<vector<int>> &tour, vector<Point> &points) {
     vector<int> path = get_path(tour);
     if (tour[0].size() == 0) return path;
 
-    while (true) {
-        outer:;
+    int best_savings = 0;
+    do {
+        best_savings = 0;
         for (int p1=1; p1 < path.size(); p1++) {
             for (int p2=p1+1; p2 < path.size()-1; p2++) {
 
@@ -363,12 +364,11 @@ vector<int> k2opt(vector<vector<int>> &tour, vector<Point> &points) {
 
                 if(savings > 0) {
                     get_k2opt_path(path, p1, p2);
-                    break;
+                    best_savings = savings;
                 }
             }
         }
-        break;
-    }
+    } while (best_savings != 0);
 
     return path;
 }
