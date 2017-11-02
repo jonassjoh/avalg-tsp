@@ -386,7 +386,7 @@ int main() {
     // List of points
     vector<Point> points;
     for (int i=0; i < N; i++)
-    points.push_back(readPoint(i));
+        points.push_back(readPoint(i));
 
     vector<vector<int>> tour = clarke_wright(points, N);
 
