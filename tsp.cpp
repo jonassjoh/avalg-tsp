@@ -349,8 +349,6 @@ vector<int> k2opt(vector<vector<int>> &tour, vector<Point> &points) {
     vector<int> path = get_path(tour);
     if (tour[0].size() == 0) return path;
 
-    int path_length = get_path_length(path, points);
-
     while (true) {
         outer:;
         for (int p1=1; p1 < path.size(); p1++) {
@@ -362,12 +360,9 @@ vector<int> k2opt(vector<vector<int>> &tour, vector<Point> &points) {
                 Point &pivot_4 = points[path[p1]];      // 2
 
                 int savings = get_savings(pivot_1, pivot_2, pivot_3, pivot_4);
-                // int primedistance = path_length - savings;
 
-                // if (primedistance < path_length) {
                 if(savings > 0) {
                     get_k2opt_path(path, p1, p2);
-                    //path_length = primedistance;
                     break;
                 }
             }
