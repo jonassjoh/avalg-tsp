@@ -94,17 +94,6 @@ struct less_than_Edge
 };
 
 /**
-Prints an array using a new line for every index
-
-@param arr The array to be printed
-@param size The length of the array
-*/
-void print_result(int* arr, int size) {
-    for (int i=0; i < size; i++)
-    cout << arr[i] << endl;
-}
-
-/**
 Reads two doubles from cin and returns a Point containing the values
 
 @return A point containing values read from cin
@@ -154,10 +143,24 @@ int* greedyTour(vector<Point> points, int n) {
     return tour;
 }
 
+/**
+Checks if adding an edge will produce a cycle. It does this by checking if
+the parents of the two nodes connected by the edge are the same.
+@param points A vector containing the Points in the Edge at the indexes
+@param edge The edge that is added
+@return true if adding the edge will produce a cycle, false otherwise.
+*/
 bool containsCycle(vector<Point> &points, Edge edge) {
     return points[edge.from].parent == points[edge.to].parent;
 }
 
+/**
+Provided an edge, this function will mutate the Points connected by the edge
+such that all points in turn connected by edges will share the same parent.
+@param points A vector containing all Points present in the tour.
+@param tour A vector och vectors containing all the neighbours of each point
+@param edge The edge to match parents with
+*/
 void syncParents(vector<Point> &points, vector<vector<int>> &tour, Edge edge) {
     int parent = points[edge.to].parent;
     int prev = -1;
@@ -174,16 +177,18 @@ void syncParents(vector<Point> &points, vector<vector<int>> &tour, Edge edge) {
     }
 }
 
+/**
+TSP approximation using Clarke Wright
+@param points All points in the graph
+@param n The number of elements in points
+*/
 vector<vector<int>> clarke_wright(vector<Point> points, int n) {
-    //srand(time(NULL));
-    //int hub_index = rand() % n;
     Point hub = points[0];
     vector<Edge> edges;
 
     bool* bools = new bool[n]();
 
     vector<vector<int>> tour(n);
-    // tour.reserve(n);
 
     //V_h = V - h
     points.erase(std::remove(points.begin(), points.end(), hub), points.end());
@@ -223,7 +228,6 @@ vector<vector<int>> clarke_wright(vector<Point> points, int n) {
             }
         }
 
-        //edges.erase(edges.begin() + 0);
         edges.pop_back();
     }
 
@@ -237,94 +241,22 @@ vector<vector<int>> clarke_wright(vector<Point> points, int n) {
     return tour;
 }
 
-void print_tour(vector<vector<int>> &tour) {
+/**
+Converts the neighbour list tour into a single vector.
+For example:
+tour = [
+    [1 5]
+    [2 0]
+    [3 1]
+    [4 2]
+    [5 3]
+    [0 4]
+]
+will return [0 1 2 3 4 5]
 
-    if (tour[0].size() == 0) {
-        cout << 0 << endl;
-        return;
-    }
-
-    int prev = 0;
-    int next = tour[0][0];
-
-    cout << prev << endl;
-    while(next != 0) {
-        /* code */
-        for(int i = 0; i < tour[next].size(); i++) {
-            if(tour[next][i] != prev) {
-                cout << next << endl;
-                if (i == 1) {
-                    swap( tour[next][0], tour[next][1] );
-                }
-                prev = next;
-                next = tour[next][0];
-                break;
-            }
-        }
-    }
-}
-
-int tour_length(vector<vector<int>> &tour, vector<Point> &points) {
-    int l = 0;
-
-    if (tour[0].size() == 0) {
-        return l;
-    }
-
-    int prev = 0;
-    int next = tour[0][0];
-
-    while(next != 0) {
-        /* code */
-        for(int i = 0; i < tour[next].size(); i++) {
-            if(tour[next][i] != prev) {
-                l += points[next].distance(points[prev]);
-                if (i == 1) {
-                    swap( tour[next][0], tour[next][1] );
-                }
-                prev = next;
-                next = tour[next][0];
-                break;
-            }
-        }
-    }
-    l += points[next].distance(points[prev]);
-
-    return l;
-}
-
-static bool IsOnSegment(double xi, double yi, double xj, double yj,
-                        double xk, double yk) {
-  return (xi <= xk || xj <= xk) && (xk <= xi || xk <= xj) &&
-         (yi <= yk || yj <= yk) && (yk <= yi || yk <= yj);
-}
-
-static char ComputeDirection(double xi, double yi, double xj, double yj,
-                             double xk, double yk) {
-  double a = (xk - xi) * (yj - yi);
-  double b = (xj - xi) * (yk - yi);
-  return a < b ? -1 : a > b ? 1 : 0;
-}
-
-/** Do line segments (x1, y1)--(x2, y2) and (x3, y3)--(x4, y4) intersect? */
-bool DoLineSegmentsIntersect(double x1, double y1, double x2, double y2,
-                             double x3, double y3, double x4, double y4) {
-  char d1 = ComputeDirection(x3, y3, x4, y4, x1, y1);
-  char d2 = ComputeDirection(x3, y3, x4, y4, x2, y2);
-  char d3 = ComputeDirection(x1, y1, x2, y2, x3, y3);
-  char d4 = ComputeDirection(x1, y1, x2, y2, x4, y4);
-  return (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
-          ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) ||
-         (d1 == 0 && IsOnSegment(x3, y3, x4, y4, x1, y1)) ||
-         (d2 == 0 && IsOnSegment(x3, y3, x4, y4, x2, y2)) ||
-         (d3 == 0 && IsOnSegment(x1, y1, x2, y2, x3, y3)) ||
-         (d4 == 0 && IsOnSegment(x1, y1, x2, y2, x4, y4));
-}
-
-bool DoLineSegmentsIntersect(Point &p1, Point &p2, Point &p3, Point &p4) {
-    return DoLineSegmentsIntersect(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y);
-}
-
+@param tour The multidimensional tour to be converted
+@return A single one-dimensional vector representing the tour
+*/
 vector<int> get_path(vector<vector<int>> &tour) {
     vector<int> res;
 
@@ -351,6 +283,12 @@ vector<int> get_path(vector<vector<int>> &tour) {
     return res;
 }
 
+/**
+Calculates the length of a path
+@param path The path to calculate the distance for
+@param points An array containing the position of all points in the path
+@return The length of the entire path
+*/
 int get_path_length(vector<int> &path, vector<Point> &points) {
     int s = 0;
     if (path.size() == 1) return 0;
@@ -361,8 +299,16 @@ int get_path_length(vector<int> &path, vector<Point> &points) {
     return s;
 }
 
+/**
+Calculates the gain from swapping two edges by comparing the distance before
+and after swapping them around.
+@param p1 The first pivot point
+@param p2 The new point that p1 will connect to that p3 connected to before
+@param p3 The second pivot point
+@param p4 The new point that p3 will connect to that p1 connected to before
+@return How much is gained by swapping the edges
+*/
 int get_savings(Point &p1, Point &p2, Point &p3, Point &p4) {
-
     int p1_old_distance = p1.distance(p4);
     int p3_old_distance = p3.distance(p2);
 
@@ -377,10 +323,27 @@ int get_savings(Point &p1, Point &p2, Point &p3, Point &p4) {
     return total_distance_gain;
 }
 
+/**
+Used in k2opt
+Reverses the path from index p1 (included) to p2 (included).
+Example:
+    path = [0 1 2 3 4 5], p1=2, p2=4
+    produces [0 1 4 3 2 5]
+
+@param path The path to mutate
+@param p1 The starting index (incuded) of the segment to reverse
+@param p2 The ending index (included) of the segment to reverse
+*/
 void get_k2opt_path(vector<int> &path, int p1, int p2) {
     reverse(path.begin()+p1, path.begin()+p2+1);
 }
 
+/**
+TSP improvement algorithm
+@param tour The tour to improve
+@param points A vector containing all the points in the tour
+@return a one dimensional vector representing the improved tour
+*/
 vector<int> k2opt(vector<vector<int>> &tour, vector<Point> &points) {
 
     vector<int> path = get_path(tour);
@@ -405,7 +368,6 @@ vector<int> k2opt(vector<vector<int>> &tour, vector<Point> &points) {
                     get_k2opt_path(path, p1, p2);
                     path_length = primedistance;
                     break;
-                    //goto outer;
                 }
             }
         }
@@ -413,84 +375,6 @@ vector<int> k2opt(vector<vector<int>> &tour, vector<Point> &points) {
     }
 
     return path;
-    /*
-    int tourLength = tour_length(tour, points);
-    bool noChange = true;
-    do {
-        /*
-            For Example:
-
-            0 -> 1 -> 2     0    1 -> 2
-            ^         |     ^  \      |
-            |         v     |      \  v
-            5 <- 4 <- 3     5 <- 4    3
-
-            tour = [
-                0 => [1, 5]   -->   0 => [__3__, 5] (pivot 1)
-                1 => [2, 0]   -->   1 => [2, __4__]
-                2 => [3, 1]
-                3 => [4, 2]   -->   3 => [__0__, 2]
-                4 => [5, 3]   -->   4 => [5, __1__] (pivot 2)
-                5 => [0, 4]
-            ]
-        */ /*
-        for (int p1=0; p1 < tour.size(); p1++) {
-            for (int p2=p1+1; p2 < tour.size(); p2++) {
-                if (p1 != p2 && p2 != tour[p1][0] && p2 != tour[p1][1]) {
-                    // p1 and p2 are 2 different points that are not neighbours
-
-                    int p1_next = tour[p1][0];  // 1
-                    int p2_next = tour[p2][1];  // 3
-
-                    int p1_next_old = tour[p1_next][1];
-                    int p2_next_old = tour[p2_next][0];
-
-                    tour[p1][0] = p2_next;      // 0 => [3, 5]
-                    tour[p2][1] = p1_next;      // 4 => [5, 1]
-
-                    tour[p1_next][1] = p2;      // 1 => [2, 4]
-                    tour[p2_next][0] = p1;      // 3 => [0, 2]
-
-                    /*
-                        p1 used to go to p1_next, now goes to p2_next
-                        p2 used to go to p2_next, now goes to p1_next
-                    */ /*
-
-                    int p1_old_distance = points[p1].distance(points[p1_next]);
-                    int p2_old_distance = points[p2].distance(points[p2_next]);
-
-                    int p1_new_distance = points[p1].distance(points[p2_next]);
-                    int p2_new_distance = points[p2].distance(points[p1_next]);
-
-                    int p1_distance_gain = p1_old_distance - p1_new_distance;
-                    int p2_distance_gain = p2_old_distance - p2_new_distance;
-
-                    int total_distance_gain = p1_distance_gain + p2_distance_gain;
-
-                    //int primetour_length = tour_length(primetour, points);
-                    int primetour_length = tourLength - total_distance_gain;
-                    if (primetour_length < tourLength) {
-                        tourLength = primetour_length;
-                        noChange = false;
-
-                        //p1 = tour.size();
-                        break;
-                        //goto outer;
-                    } else {
-                        // Revert path
-                        tour[p1][0] = p1_next;
-                        tour[p2][1] = p2_next;
-                        tour[p1_next][1] = p1_next_old;
-                        tour[p2_next][0] = p2_next_old;
-                    }
-                }
-            }
-        }
-        noChange = true;
-        outer:;
-    } while(!noChange);
-    return tour;
-    */
 }
 
 int main() {
